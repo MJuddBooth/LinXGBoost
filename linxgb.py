@@ -23,7 +23,7 @@ def make_polynomial_features(X,order):
     X = X[:,1:] # remove the first column, only 1
     return X
 
-class linxgb:
+class linxgb(object):
     """Define a LinXGBoost regressor.
 
     It basically holds a list of trees.
@@ -128,12 +128,12 @@ class linxgb:
         for t in range(len(self.trees)-1):
             y += self.learning_rate*self.trees[t].predict(X)
         y += self.trees[-1].predict(X)
-        
+
         # in binary classification, outputs >0 are labeled 1, 0 otherwise
         if self.loss_function == "binary:logistic":
             y[ y<=0 ] = 0
             y[ y>0 ] = 1
-        
+
         return y
 
     def squareloss(self, y, y_hat):
@@ -148,35 +148,35 @@ class linxgb:
         """
 
         return 2*(y_hat-y)
-    
+
     def ddsquareloss(self, X, y, y_hat):
         """Return the second-order derivative of the squared loss
         w.r.t. its second argument evaluated at \f$(y, \hat{y}^{(t-1)})\f$.
         """
-        
+
         n = len(y)
         return 2*np.ones(n, dtype=float)
-    
+
     def logisticloss(self, y, y_hat):
         """Return the logisitc loss wo/ penalty / regularization.
         """
-        
+
         return np.sum(y*np.log(1.+np.exp(-y_hat)) + (1.-y)*np.log(1.+np.exp(y_hat)))
-        
+
     def dlogisticloss(self, X, y, y_hat):
         """Return the first-order derivative of the logistic loss
         w.r.t. its second argument evaluated at \f$(y, \hat{y}^{(t-1)})\f$.
         """
-        
+
         return -( (y-1.)*np.exp(y_hat)+y)/(np.exp(y_hat)+1.)
-        
+
     def ddlogisticloss(self, X, y, y_hat):
         """Return the second-order derivative of the logistic loss
         w.r.t. its second argument evaluated at \f$(y, \hat{y}^{(t-1)})\f$.
         """
-        
+
         return np.exp(y_hat)/np.square(np.exp(y_hat)+1.)
-        
+
     def regularization(self):
         """Return the penalty for all trees built so far.
 
@@ -255,7 +255,7 @@ class linxgb:
     def fit(self, X, y):
         """Fit the model by building all trees
         """
-        
+
         if self.loss_function == "reg:linear":
             print("reg:linear will be deprecated; use reg:squarederror instead")
             self.loss_function = "reg:squarederror"
@@ -269,7 +269,7 @@ class linxgb:
             self.ddloss_func = self.ddlogisticloss
         else:
             raise ValueError("unknown error function")
-        
+
         if y.ndim != 1:
             print( "lingxb.fit() is expecting a 1D array!" )
             y = y.ravel()
@@ -317,9 +317,9 @@ class linxgb:
                 del self.trees[-1]
                 del self.tree_objs[-1]
                 break
-        
+
         return self
-        
+
     def prune_tree_type_1(self, tree):
         """Prune a tree.
 
